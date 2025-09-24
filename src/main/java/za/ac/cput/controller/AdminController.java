@@ -7,9 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import za.ac.cput.dto.CoordinatorRequest;
 import za.ac.cput.dto.CoordinatorResponse;
 import za.ac.cput.domain.Coordinator;
-import za.ac.cput.domain.User;
-import za.ac.cput.repository.UserRepository;
-import za.ac.cput.service.CoordinatorService;
+import za.ac.cput.service.ICoordinatorService;
 
 import java.security.Principal;
 
@@ -17,26 +15,24 @@ import java.security.Principal;
 @RequestMapping("/api/admin")
 public class AdminController {
 
-    private final CoordinatorService coordinatorService;
-    private final UserRepository userRepository;
+    private final ICoordinatorService coordinatorService;
 
-    public AdminController(CoordinatorService coordinatorService, UserRepository userRepository) {
+    public AdminController(ICoordinatorService coordinatorService) {
         this.coordinatorService = coordinatorService;
-        this.userRepository = userRepository;
     }
 
     @PostMapping("/register/coordinator")
-    public ResponseEntity<CoordinatorResponse> registerCoordinator(@Valid @RequestBody CoordinatorRequest request,
-                                                                   Principal principal) {
-        String adminEmail = principal.getName();
-        User adminUser = userRepository.findByEmail(adminEmail)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+    public ResponseEntity<CoordinatorResponse> registerCoordinator(
+            @Valid @RequestBody CoordinatorRequest request,
+            Principal principal) {
+        // Handle null principal (if not secured)
+        String adminEmail = (principal != null) ? principal.getName() : "system";
 
-        Coordinator coordinator = coordinatorService.registerCoordinator(request, adminUser);
+        Coordinator coordinator = coordinatorService.registerCoordinator(request, adminEmail);
 
         CoordinatorResponse response = new CoordinatorResponse(
                 coordinator.getId(),
-                coordinator.getUser().getEmail(),
+                coordinator.getUser() != null ? coordinator.getUser().getEmail() : null,
                 coordinator.getFullName(),
                 coordinator.getContactNumber(),
                 coordinator.getCourseAssigned()

@@ -1,7 +1,8 @@
 package za.ac.cput.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import za.ac.cput.domain.Coordinator;
+import java.util.Optional;
 
-public interface CoordinatorRepository extends JpaRepository<Coordinator, Long> {
+public interface CoordinatorRepository extends IRepository<Coordinator, Long> {
+    Optional<Coordinator> findByUserEmail(String email);
 }
