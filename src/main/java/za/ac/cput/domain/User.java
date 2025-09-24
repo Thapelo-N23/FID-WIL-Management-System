@@ -48,6 +48,17 @@ public class User {
         this.role = role;
     }
 
+    private User(Builder builder) {
+        this.id = builder.id;
+        this.email = builder.email;
+        this.password = builder.password;
+        this.role = builder.role;
+        this.active = builder.active;
+        this.popiaConsent = builder.popiaConsent;
+        this.emailVerified = builder.emailVerified;
+        this.createdAt = builder.createdAt;
+    }
+
     // Getters & Setters
     public Long getId() { return id; }
 
@@ -73,4 +84,83 @@ public class User {
 
     public Coordinator getCoordinator() { return coordinator; }
     public void setCoordinator(Coordinator coordinator) { this.coordinator = coordinator; }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", email='" + email + '\'' +
+                ", role=" + role +
+                ", active=" + active +
+                ", emailVerified=" + emailVerified +
+                ", createdAt=" + createdAt +
+                '}';
+    }
+
+    public static class Builder {
+        private Long id;
+        private String email;
+        private String password;
+        private Role role;
+        private Boolean active = true;
+        private Boolean popiaConsent = false;
+        private Boolean emailVerified = false;
+        private LocalDateTime createdAt;
+
+        public Builder setId(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder setEmail(String email) {
+            this.email = email;
+            return this;
+        }
+
+        public Builder setPassword(String password) {
+            this.password = password;
+            return this;
+        }
+
+        public Builder setRole(Role role) {
+            this.role = role;
+            return this;
+        }
+
+        public Builder setActive(Boolean active) {
+            this.active = active;
+            return this;
+        }
+
+        public Builder setPopiaConsent(Boolean popiaConsent) {
+            this.popiaConsent = popiaConsent;
+            return this;
+        }
+
+        public Builder setEmailVerified(Boolean emailVerified) {
+            this.emailVerified = emailVerified;
+            return this;
+        }
+
+        public Builder setCreatedAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public User build() {
+            return new User(this);
+        }
+
+        public Builder copy(User user) {
+            this.id = user.id;
+            this.email = user.email;
+            this.password = user.password;
+            this.role = user.role;
+            this.active = user.active;
+            this.popiaConsent = user.popiaConsent;
+            this.emailVerified = user.emailVerified;
+            this.createdAt = user.createdAt;
+            return this;
+        }
+    }
 }
