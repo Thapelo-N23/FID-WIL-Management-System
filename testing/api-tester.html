@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API Tester - A1 & A2</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { text-align: center; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 5px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; font-family: monospace; }
+        .success { color: green; }
+        .error { color: red; }
+        input { padding: 8px; margin: 5px; width: 220px; border: 1px solid #ccc; border-radius: 4px; }
+        .flex { display: flex; flex-wrap: wrap; gap: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🚀 API Tester - A1 & A2</h1>
+
+    <!-- Coordinator Registration -->
+    <div class="section">
+        <h2>A1 - Register Coordinator</h2>
+        <div class="flex">
+            <input type="text" id="coordEmail" placeholder="Email" value="coordinator@cput.ac.za">
+            <input type="password" id="coordPassword" placeholder="Password" value="password123">
+            <input type="text" id="coordName" placeholder="Full Name" value="John Coordinator">
+            <input type="text" id="coordPhone" placeholder="Phone" value="0831234567">
+            <input type="text" id="coordCourse" placeholder="Course" value="IT Diploma">
+        </div>
+        <button onclick="registerCoordinator()">Register</button>
+        <div id="coordinatorResult" class="result"></div>
+    </div>
+
+    <!-- Student Management -->
+    <div class="section">
+        <h2>A2 - Student Management</h2>
+
+        <!-- Create -->
+        <h3>1. Create Student</h3>
+        <div class="flex">
+            <input type="text" id="studentEmail" placeholder="Email" value="student@cput.ac.za">
+            <input type="text" id="studentNumber" placeholder="Student Number" value="219123456">
+            <input type="text" id="studentName" placeholder="Full Name" value="Jane Student">
+        </div>
+        <button onclick="createTestStudent()">Create Student</button>
+        <div id="createStudentResult" class="result"></div>
+
+        <!-- Status -->
+        <h3>2. Toggle Student Status</h3>
+        <input type="number" id="studentId" placeholder="Student ID" value="1">
+        <button onclick="activateStudent()">Activate</button>
+        <button onclick="deactivateStudent()">Deactivate</button>
+        <div id="studentStatusResult" class="result"></div>
+
+        <!-- View -->
+        <h3>3. View Students</h3>
+        <button onclick="getAllStudents()">All</button>
+        <button onclick="getActiveStudents()">Active</button>
+        <button onclick="getInactiveStudents()">Inactive</button>
+        <div id="studentsResult" class="result"></div>
+    </div>
+
+    <!-- Test Data -->
+    <div class="section">
+        <h2>📊 Test Data</h2>
+        <button onclick="loadTestData()">Load Sample Data</button>
+        <div id="testDataResult" class="result"></div>
+    </div>
+</div>
+
+<script>
+    const BASE_URL = 'http://localhost:8080/api';
+
+    // API Caller
+    async function apiCall(endpoint, method = 'GET', data = null) {
+        const options = { method, headers: { 'Content-Type': 'application/json' } };
+        if (data) options.body = JSON.stringify(data);
+
+        try {
+            const res = await fetch(endpoint, options);
+            const result = await res.json().catch(() => ({}));
+            return { success: res.ok, status: res.status, data: result };
+        } catch (err) {
+            return { success: false, error: err.message };
+        }
+    }
+
+    // Display results
+    function displayResult(elementId, result, successMsg) {
+        const el = document.getElementById(elementId);
+        if (result.success) {
+            el.innerHTML = `<span class="success">✅ ${successMsg}</span>\n\n${JSON.stringify(result.data, null, 2)}`;
+        } else {
+            el.innerHTML = `<span class="error">❌ ${result.error || result.data?.message || 'Unknown error'}</span>\n\n${JSON.stringify(result, null, 2)}`;
+        }
+    }
+
+    // API Functions
+    async function registerCoordinator() {
+        const payload = {
+            email: coordEmail.value,
+            password: coordPassword.value,
+            fullName: coordName.value,
+            contactNumber: coordPhone.value,
+            courseAssigned: coordCourse.value
+        };
+        const res = await apiCall(`${BASE_URL}/admin/register/coordinator`, 'POST', payload);
+        displayResult('coordinatorResult', res, 'Coordinator registered!');
+    }
+
+    async function createTestStudent() {
+        const payload = {
+            user: { email: studentEmail.value, password: 'student123', role: 'STUDENT' },
+            studentNumber: studentNumber.value,
+            fullName: studentName.value,
+            course: 'Information Technology',
+            active: true,
+            status: 'UNPLACED'
+        };
+        const res = await apiCall(`${BASE_URL}/students`, 'POST', payload);
+        displayResult('createStudentResult', res, 'Student created!');
+    }
+
+    async function activateStudent() {
+        const res = await apiCall(`${BASE_URL}/admin/students/${studentId.value}/activate`, 'PATCH');
+        displayResult('studentStatusResult', res, 'Student activated!');
+    }
+
+    async function deactivateStudent() {
+        const res = await apiCall(`${BASE_URL}/admin/students/${studentId.value}/deactivate`, 'PATCH');
+        displayResult('studentStatusResult', res, 'Student deactivated!');
+    }
+
+    async function getAllStudents() {
+        displayResult('studentsResult', await apiCall(`${BASE_URL}/admin/students`), 'All students');
+    }
+    async function getActiveStudents() {
+        displayResult('studentsResult', await apiCall(`${BASE_URL}/admin/students/active`), 'Active students');
+    }
+    async function getInactiveStudents() {
+        displayResult('studentsResult', await apiCall(`${BASE_URL}/admin/students/inactive`), 'Inactive students');
+    }
+
+    function loadTestData() {
+        const testData = [
+            { email: 'admin@cput.ac.za', password: 'admin123', role: 'ADMIN' },
+            { email: 'coord1@cput.ac.za', password: 'coord123', fullName: 'Sarah Coordinator', contactNumber: '0831111111', courseAssigned: 'IT Diploma' },
+            { email: 'student1@cput.ac.za', studentNumber: '219111111', fullName: 'Mike Student', course: 'Software Development' }
+        ];
+        displayResult('testDataResult', { success: true, data: testData }, 'Sample data ready');
+    }
+
+    window.onload = () => console.log('🚀 API Tester Ready (http://localhost:8080)');
+</script>
+</body>
+</html>

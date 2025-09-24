@@ -34,14 +34,19 @@ public class CoordinatorServiceImpl implements ICoordinatorService {
     @Override
     @Transactional
     public Coordinator registerCoordinator(CoordinatorRequest request, String adminEmail) {
+        // Validate email format
+        Helper.validateEmail(request.getEmail());
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already registered: " + request.getEmail());
         }
 
+        // Create user account
         User user = UserFactory.createCoordinator(request.getEmail(), request.getPassword());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user = userRepository.save(user);
 
+        // Create coordinator profile
         Coordinator coordinator = new Coordinator.Builder()
                 .setUser(user)
                 .setFullName(request.getFullName())
@@ -51,6 +56,7 @@ public class CoordinatorServiceImpl implements ICoordinatorService {
 
         coordinator = coordinatorRepository.save(coordinator);
 
+        // Log activity
         Helper.logActivity("COORDINATOR_REGISTERED",
                 "Coordinator " + request.getFullName() + " registered by admin",
                 adminEmail, request.getEmail());
@@ -88,5 +94,9 @@ public class CoordinatorServiceImpl implements ICoordinatorService {
     @Override
     public List<Coordinator> getAll() {
         return coordinatorRepository.findAll();
+    }
+
+    public Optional<Coordinator> findByUserEmail(String email) {
+        return coordinatorRepository.findByUserEmail(email);
     }
 }
