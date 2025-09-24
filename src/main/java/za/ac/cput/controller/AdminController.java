@@ -9,10 +9,12 @@ import za.ac.cput.dto.CoordinatorResponse;
 import za.ac.cput.domain.Coordinator;
 import za.ac.cput.service.ICoordinatorService;
 
-import java.security.Principal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
+@CrossOrigin(origins = "*")
 public class AdminController {
 
     private final ICoordinatorService coordinatorService;
@@ -22,22 +24,67 @@ public class AdminController {
     }
 
     @PostMapping("/register/coordinator")
-    public ResponseEntity<CoordinatorResponse> registerCoordinator(
+    public ResponseEntity<?> registerCoordinator(
             @Valid @RequestBody CoordinatorRequest request,
-            Principal principal) {
-        // Handle null principal (if not secured)
-        String adminEmail = (principal != null) ? principal.getName() : "system";
+            @RequestHeader(value = "Admin-Email", required = false) String adminEmail) {
 
-        Coordinator coordinator = coordinatorService.registerCoordinator(request, adminEmail);
+        try {
+            // Use provided admin email or default - no authentication required
+            String effectiveAdminEmail = (adminEmail != null && !adminEmail.isEmpty())
+                    ? adminEmail : "admin@cput.ac.za";
 
-        CoordinatorResponse response = new CoordinatorResponse(
-                coordinator.getId(),
-                coordinator.getUser() != null ? coordinator.getUser().getEmail() : null,
-                coordinator.getFullName(),
-                coordinator.getContactNumber(),
-                coordinator.getCourseAssigned()
-        );
+            Coordinator coordinator = coordinatorService.registerCoordinator(request, effectiveAdminEmail);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            CoordinatorResponse response = new CoordinatorResponse(
+                    coordinator.getId(),
+                    coordinator.getUser() != null ? coordinator.getUser().getEmail() : null,
+                    coordinator.getFullName(),
+                    coordinator.getContactNumber(),
+                    coordinator.getCourseAssigned()
+            );
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error registering coordinator: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/coordinators")
+    public ResponseEntity<List<CoordinatorResponse>> getAllCoordinators() {
+        try {
+            List<Coordinator> coordinators = coordinatorService.getAll();
+            List<CoordinatorResponse> responses = coordinators.stream()
+                    .map(coordinator -> new CoordinatorResponse(
+                            coordinator.getId(),
+                            coordinator.getUser() != null ? coordinator.getUser().getEmail() : null,
+                            coordinator.getFullName(),
+                            coordinator.getContactNumber(),
+                            coordinator.getCourseAssigned()
+                    ))
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(responses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @DeleteMapping("/coordinators/{id}")
+    public ResponseEntity<String> deleteCoordinator(@PathVariable Long id) {
+        try {
+            // Simplified - just delete without admin authentication
+            boolean deleted = coordinatorService.delete(id);
+            if (deleted) {
+                return ResponseEntity.ok("Coordinator deleted successfully");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Coordinator not found");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error deleting coordinator: " + e.getMessage());
+        }
     }
 }

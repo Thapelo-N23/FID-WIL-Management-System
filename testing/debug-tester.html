@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Tester - Debug Mode</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        button { padding: 10px; margin: 5px; }
+        .result { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+<h1>🔧 API Debug Tester</h1>
+
+<div>
+    <h2>1. Check Backend Connection</h2>
+    <button onclick="checkBackend()">Check if Backend is Running</button>
+    <div id="connectionResult" class="result"></div>
+</div>
+
+<div>
+    <h2>2. Test Simple Endpoint</h2>
+    <button onclick="testSimpleEndpoint()">Test /api/health</button>
+    <div id="simpleTestResult" class="result"></div>
+</div>
+
+<div>
+    <h2>3. A1 - Register Coordinator (Manual Test)</h2>
+    <textarea id="curlCommand" rows="6" cols="80" readonly>
+curl -X POST http://localhost:8080/api/admin/register/coordinator \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "coordinator@cput.ac.za",
+    "password": "password123",
+    "fullName": "John Coordinator",
+    "contactNumber": "0831234567",
+    "courseAssigned": "IT Diploma"
+  }'
+        </textarea>
+    <br>
+    <button onclick="copyCurlCommand()">Copy cURL Command</button>
+    <div id="copyResult"></div>
+</div>
+
+<div>
+    <h2>4. Quick Test with Different Ports</h2>
+    <button onclick="testPort(8080)">Test Port 8080</button>
+    <button onclick="testPort(8081)">Test Port 8081</button>
+    <button onclick="testPort(8082)">Test Port 8082</button>
+    <button onclick="testPort(9000)">Test Port 9000</button>
+    <div id="portTestResult" class="result"></div>
+</div>
+
+<script>
+    async function checkBackend() {
+        const resultDiv = document.getElementById('connectionResult');
+        resultDiv.innerHTML = 'Testing connection...';
+
+        try {
+            // Try multiple endpoints
+            const endpoints = [
+                'http://localhost:8080',
+                'http://localhost:8080/api',
+                'http://localhost:8080/actuator/health'
+            ];
+
+            for (let endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint);
+                    resultDiv.innerHTML += `<br>✅ ${endpoint} - Status: ${response.status}`;
+                } catch (error) {
+                    resultDiv.innerHTML += `<br>❌ ${endpoint} - Error: ${error.message}`;
+                }
+            }
+        } catch (error) {
+            resultDiv.innerHTML = `❌ Connection failed: ${error.message}`;
+        }
+    }
+
+    async function testSimpleEndpoint() {
+        const resultDiv = document.getElementById('simpleTestResult');
+        resultDiv.innerHTML = 'Testing...';
+
+        try {
+            const response = await fetch('http://localhost:8080/api/health');
+            const data = await response.text();
+            resultDiv.innerHTML = `✅ Response: ${data}`;
+        } catch (error) {
+            resultDiv.innerHTML = `❌ Error: ${error.message}`;
+        }
+    }
+
+    async function testPort(port) {
+        const resultDiv = document.getElementById('portTestResult');
+        resultDiv.innerHTML = `Testing port ${port}...`;
+
+        try {
+            const response = await fetch(`http://localhost:${port}/actuator/health`);
+            const data = await response.json();
+            resultDiv.innerHTML = `✅ Port ${port} is running! Status: ${data.status}`;
+        } catch (error) {
+            resultDiv.innerHTML = `❌ Port ${port} not available: ${error.message}`;
+        }
+    }
+
+    function copyCurlCommand() {
+        const textarea = document.getElementById('curlCommand');
+        textarea.select();
+        document.execCommand('copy');
+        document.getElementById('copyResult').innerHTML = '✅ cURL command copied!';
+    }
+</script>
+</body>
+</html>
