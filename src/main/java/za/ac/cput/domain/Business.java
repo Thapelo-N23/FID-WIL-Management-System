@@ -1,3 +1,5 @@
+/**Author : Bukhobenkosi Mbinda*/
+
 package za.ac.cput.domain;
 
 import jakarta.persistence.*;
@@ -5,8 +7,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-// import java.util.HashSet;
-// import java.util.Set;
 
 @Entity
 @Table(name = "businesses")
@@ -17,25 +17,23 @@ public class Business {
     @Column(name = "business_id")
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User user;
-
-    @Column(name = "company_name", nullable = false, length = 150)
+    @Column(name = "company_name", nullable = false, length = 100)
     private String companyName;
+
+    @Column(name = "registration_number", nullable = false, unique = true, length = 50)
+    private String registrationNumber;
 
     @Column(name = "industry", length = 100)
     private String industry;
 
-    @Column(name = "location", length = 200)
-    private String location;
+    @Column(name = "contact_number", length = 20)
+    private String contactNumber;
 
-    @Column(name = "description", length = 500)
-    private String description;
+    @Column(name = "email", nullable = false, unique = true, length = 100)
+    private String email;
 
-// TODO: Uncomment when InternshipPost is implemented
-// @OneToMany(mappedBy = "business", cascade = CascadeType.ALL, orphanRemoval = true)
-// private Set<InternshipPost> posts = new HashSet<>();
+    @Column(name = "address", length = 255)
+    private String address;
 
     @Column(nullable = false)
     private Boolean active = true;
@@ -48,17 +46,27 @@ public class Business {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Relationships (commented until other classes are ready)
+    /*
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User;
+
+    @OneToMany(mappedBy = "business", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InternshipPost> posts = new ArrayList<>();
+    */
+
     // Default constructor
     public Business() {}
 
     private Business(Builder builder) {
         this.id = builder.id;
-        this.user = builder.user;
         this.companyName = builder.companyName;
+        this.registrationNumber = builder.registrationNumber;
         this.industry = builder.industry;
-        this.location = builder.location;
-        this.description = builder.description;
-        // this.posts = builder.posts;
+        this.contactNumber = builder.contactNumber;
+        this.email = builder.email;
+        this.address = builder.address;
         this.active = builder.active;
         this.createdAt = builder.createdAt;
         this.updatedAt = builder.updatedAt;
@@ -66,44 +74,34 @@ public class Business {
 
     // Getters
     public Long getId() { return id; }
-    public User getUser() { return user; }
     public String getCompanyName() { return companyName; }
+    public String getRegistrationNumber() { return registrationNumber; }
     public String getIndustry() { return industry; }
-    public String getLocation() { return location; }
-    public String getDescription() { return description; }
-    // public Set<InternshipPost> getPosts() { return posts; }
+    public String getContactNumber() { return contactNumber; }
+    public String getEmail() { return email; }
+    public String getAddress() { return address; }
     public Boolean getActive() { return active; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 
     // Setters
-    public void setUser(User user) { this.user = user; }
     public void setCompanyName(String companyName) { this.companyName = companyName; }
+    public void setRegistrationNumber(String registrationNumber) { this.registrationNumber = registrationNumber; }
     public void setIndustry(String industry) { this.industry = industry; }
-    public void setLocation(String location) { this.location = location; }
-    public void setDescription(String description) { this.description = description; }
+    public void setContactNumber(String contactNumber) { this.contactNumber = contactNumber; }
+    public void setEmail(String email) { this.email = email; }
+    public void setAddress(String address) { this.address = address; }
     public void setActive(Boolean active) { this.active = active; }
 
-    @Override
-    public String toString() {
-        return "Business{" +
-                "id=" + id +
-                ", companyName='" + companyName + '\'' +
-                ", industry='" + industry + '\'' +
-                ", location='" + location + '\'' +
-                ", active=" + active +
-                '}';
-    }
-
-    // Builder
+    // Builder class
     public static class Builder {
         private Long id;
-        private User user;
         private String companyName;
+        private String registrationNumber;
         private String industry;
-        private String location;
-        private String description;
-        // private Set<InternshipPost> posts = new HashSet<>();
+        private String contactNumber;
+        private String email;
+        private String address;
         private Boolean active = true;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
@@ -113,13 +111,13 @@ public class Business {
             return this;
         }
 
-        public Builder setUser(User user) {
-            this.user = user;
+        public Builder setCompanyName(String companyName) {
+            this.companyName = companyName;
             return this;
         }
 
-        public Builder setCompanyName(String companyName) {
-            this.companyName = companyName;
+        public Builder setRegistrationNumber(String registrationNumber) {
+            this.registrationNumber = registrationNumber;
             return this;
         }
 
@@ -128,20 +126,20 @@ public class Business {
             return this;
         }
 
-        public Builder setLocation(String location) {
-            this.location = location;
+        public Builder setContactNumber(String contactNumber) {
+            this.contactNumber = contactNumber;
             return this;
         }
 
-        public Builder setDescription(String description) {
-            this.description = description;
+        public Builder setEmail(String email) {
+            this.email = email;
             return this;
         }
 
-        // public Builder setPosts(Set<InternshipPost> posts) {
-        //     this.posts = posts;
-        //     return this;
-        // }
+        public Builder setAddress(String address) {
+            this.address = address;
+            return this;
+        }
 
         public Builder setActive(Boolean active) {
             this.active = active;
@@ -160,12 +158,12 @@ public class Business {
 
         public Builder copy(Business business) {
             this.id = business.id;
-            this.user = business.user;
             this.companyName = business.companyName;
+            this.registrationNumber = business.registrationNumber;
             this.industry = business.industry;
-            this.location = business.location;
-            this.description = business.description;
-            // this.posts = business.posts;
+            this.contactNumber = business.contactNumber;
+            this.email = business.email;
+            this.address = business.address;
             this.active = business.active;
             this.createdAt = business.createdAt;
             this.updatedAt = business.updatedAt;
@@ -177,5 +175,15 @@ public class Business {
         }
     }
 
-
+    @Override
+    public String toString() {
+        return "Business{" +
+                "id=" + id +
+                ", companyName='" + companyName + '\'' +
+                ", registrationNumber='" + registrationNumber + '\'' +
+                ", industry='" + industry + '\'' +
+                ", email='" + email + '\'' +
+                ", active=" + active +
+                '}';
+    }
 }
