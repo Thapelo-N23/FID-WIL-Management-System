@@ -6,18 +6,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import za.ac.cput.domain.Business;
 import za.ac.cput.repository.BusinessRepository;
-import za.ac.cput.service.IBusinessService;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @Transactional
-public class BusinessServiceImpl implements IBusinessService {
+    public class BusinessService implements IBusinessService {
 
     private final BusinessRepository repository;
 
-    public BusinessServiceImpl(BusinessRepository repository) {
+    public BusinessService(BusinessRepository repository) {
         this.repository = repository;
     }
 
