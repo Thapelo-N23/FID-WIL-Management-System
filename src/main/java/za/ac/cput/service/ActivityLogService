@@ -1,0 +1,79 @@
+package za.ac.cput.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import za.ac.cput.domain.ActivityLog;
+import za.ac.cput.factory.ActivityLogFactory;
+import za.ac.cput.repository.ActivityLogRepository;
+import za.ac.cput.util.Helper;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class ActivityLogService implements IActivityLogService {
+
+    private final ActivityLogRepository repository;
+
+    @Autowired
+    public ActivityLogService(ActivityLogRepository repository) {
+        this.repository = repository;
+    }
+
+    // ----------------------------
+    // CREATE & LOG ACTIVITY
+    // ----------------------------
+    @Override
+    public ActivityLog logActivity(String action, String description, String performedBy, String targetUser) {
+        ActivityLog log = ActivityLogFactory.createActivityLog(action, description, performedBy, targetUser);
+        return repository.save(log);
+    }
+
+    @Override
+    public ActivityLog logActivityWithIP(String action, String description,
+                                         String performedBy, String targetUser, String ipAddress) {
+        ActivityLog log = ActivityLogFactory.createActivityLog(action, description, performedBy, targetUser, ipAddress);
+        return repository.save(log);
+    }
+
+    // ----------------------------
+    // READ METHODS
+    // ----------------------------
+    @Override
+    public List<ActivityLog> getAllLogs() {
+        return repository.findAll();
+    }
+
+    @Override
+    public Optional<ActivityLog> getLogById(Long id) {
+        return repository.findById(id);
+    }
+
+    @Override
+    public List<ActivityLog> getLogsByPerformer(String performedBy) {
+        return repository.findByPerformedByOrderByPerformedAtDesc(performedBy);
+    }
+
+    @Override
+    public List<ActivityLog> getLogsByTargetUser(String targetUser) {
+        return repository.findByTargetUserOrderByPerformedAtDesc(targetUser);
+    }
+
+    // log admin actions
+    public void logAction(String action, String description, String performedBy, String targetUser) {
+        ActivityLog log = ActivityLogFactory.createActivityLog(action, description, performedBy, targetUser);
+        repository.save(log);
+    }
+
+    // ----------------------------
+    // DELETE (optional)
+    // ----------------------------
+    @Override
+    public boolean deleteLog(Long id) {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+}
