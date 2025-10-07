@@ -1,0 +1,18 @@
+package za.ac.cput.service;
+
+import za.ac.cput.domain.ActivityLog;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface IActivityLogService {
+    ActivityLog logActivity(String action, String description, String performedBy, String targetUser);
+    ActivityLog logActivityWithIP(String action, String description, String performedBy, String targetUser, String ipAddress);
+
+    List<ActivityLog> getAllLogs();
+    Optional<ActivityLog> getLogById(Long id);
+    List<ActivityLog> getLogsByPerformer(String performedBy);
+    List<ActivityLog> getLogsByTargetUser(String targetUser);
+
+    boolean deleteLog(Long id);
+}
