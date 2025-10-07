@@ -1,0 +1,115 @@
+package za.ac.cput.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import za.ac.cput.domain.Role;
+import za.ac.cput.domain.User;
+import za.ac.cput.repository.UserRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class UserService implements IUserService {
+
+    private final UserRepository repository;
+    private final ActivityLogService activityLogService; //to log admin actions
+
+    @Autowired
+    public UserService(UserRepository repository, ActivityLogService activityLogService) {
+        this.repository = repository;
+        this.activityLogService = activityLogService;
+    }
+
+    @Override
+    public User create(User user) {
+        return repository.save(user);
+    }
+
+    @Override
+    public Optional<User> read(Long id) {
+        return repository.findById(id);
+    }
+
+    @Override
+    public List<User> getAll() {
+        return repository.findAll();
+    }
+
+    @Override
+    public User update(User user) {
+        if (repository.existsById(user.getId())) {
+            return repository.save(user);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean delete(Long id) {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return repository.findByEmail(email);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return repository.findByEmail(email).isPresent();
+    }
+
+    @Override
+    public List<User> findByRole(Role role) {
+        return repository.findByRole(role);
+    }
+
+    @Override
+    public boolean deactivateUser(Long userId, String adminEmail) {
+        Optional<User> admin = repository.findByEmail(adminEmail);
+        Optional<User> userOpt = repository.findById(userId);
+
+        if (admin.isPresent() && userOpt.isPresent() && admin.get().getRole() == Role.ADMIN) {
+            User user = userOpt.get();
+            user.setActive(false);
+            repository.save(user);
+
+            // optional logging
+            activityLogService.logAction(
+                    "DEACTIVATE_USER",
+                    "Deactivated user: " + user.getEmail(),
+                    adminEmail,
+                    user.getEmail()
+            );
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean activateUser(Long userId, String adminEmail) {
+        Optional<User> admin = repository.findByEmail(adminEmail);
+        Optional<User> userOpt = repository.findById(userId);
+
+        if (admin.isPresent() && userOpt.isPresent() && admin.get().getRole() == Role.ADMIN) {
+            User user = userOpt.get();
+            user.setActive(true);
+            repository.save(user);
+
+            // optional logging
+            activityLogService.logAction(
+                    "ACTIVATE_USER",
+                    "Activated user: " + user.getEmail(),
+                    adminEmail,
+                    user.getEmail()
+            );
+            return true;
+        }
+        return false;
+    }
+}

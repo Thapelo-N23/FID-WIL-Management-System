@@ -1,0 +1,34 @@
+package za.ac.cput.controller;
+
+import org.springframework.web.bind.annotation.*;
+import za.ac.cput.domain.ActivityLog;
+import za.ac.cput.service.IActivityLogService;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/admin/logs")
+@CrossOrigin(origins = "*")
+public class ActivityLogController {
+
+    private final IActivityLogService service;
+
+    public ActivityLogController(IActivityLogService service) {
+        this.service = service;
+    }
+
+    @GetMapping
+    public List<ActivityLog> getAllLogs() {
+        return service.getAllLogs();
+    }
+
+    @GetMapping("/performer/{email}")
+    public List<ActivityLog> getLogsByPerformer(@PathVariable String email) {
+        return service.getLogsByPerformer(email);
+    }
+
+    @GetMapping("/target/{email}")
+    public List<ActivityLog> getLogsByTargetUser(@PathVariable String email) {
+        return service.getLogsByTargetUser(email);
+    }
+}
